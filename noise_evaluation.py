@@ -47,6 +47,7 @@ def parsing():
     # model config
     parser.add_argument('--model_name', default='resnet18', type=str, help='give model name like resnet18|resnet34|vit')
     parser.add_argument('--layers', default=[10], type=list, help='give model last layers as list like [512, 128, 10]')
+    parser.add_argument('--pretrained', default=False, type=bool, help='Use imagenet pretrained model')
     args = parser.parse_args()
 
     return args
@@ -124,7 +125,7 @@ def test(val_loader, net, global_eval_iter, criterion, device):
 def init_model(args):
     
     get_model = get_models(args.model_name, args.layers)
-    model = get_model.get_model()
+    model = get_model.get_model(args)
 
     if args.model_path is not None:
         print("Loading from pretrain")
