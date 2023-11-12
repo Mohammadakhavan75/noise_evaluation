@@ -9,23 +9,23 @@ class get_models:
     def get_model(self, args):
         if self.name == "resnet18":
             model = models.resnet18(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            num_ftrs = model.fc.in_features
         
         if self.name == "resnet34":
             model = models.resnet34(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            num_ftrs = model.fc.in_features
 
         if self.name == "resnet50":
             model = models.resnet50(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            num_ftrs = model.fc.in_features
 
         if self.name == "resnet101":
             model = models.resnet101(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            num_ftrs = model.fc.in_features
 
         if self.name == "resnet152":
             model = models.resnet152(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            num_ftrs = model.fc.in_features
 
         if self.name == "vit_b_16":
             model = models.vit_b_16(pretrained=args.pretrained)
@@ -104,11 +104,11 @@ class get_models:
             num_ftrs = model.classifier[1].in_features
 
         if len(self.layers) > 1:
-            model.classifier[1] = nn.Linear(num_ftrs, self.layers[0])
+            model.fc = nn.Linear(num_ftrs, self.layers[0])
             for i in range(len(self.layers)-1):
-                model.classifier.append(nn.Dropout(p=0.2))
-                model.classifier.append(nn.Linear(self.layers[i], self.layers[i+1]))
+                model.fc.append(nn.Dropout(p=0.2))
+                model.fc.append(nn.Linear(self.layers[i], self.layers[i+1]))
         else:
-            model.classifier[1] = nn.Linear(num_ftrs, self.layers[0])
+            model.fc = nn.Linear(num_ftrs, self.layers[0])
             
         return model
