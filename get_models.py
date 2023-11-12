@@ -28,24 +28,24 @@ class get_models:
             num_ftrs = model.fc.in_features
 
         if self.name == "vit_b_16":
-            model = models.vit_b_16(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            model = models.vit_b_16(pretrained=True)
+            num_ftrs = model.heads[-1].in_features
         
         if self.name == "vit_b_32":
-            model = models.vit_b_32(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            model = models.vit_b_32(pretrained=True)
+            num_ftrs = model.heads[-1].in_features
 
         if self.name == "vit_l_16":
-            model = models.vit_l_16(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            model = models.vit_l_16(pretrained=True)
+            num_ftrs = model.heads[-1].in_features
 
         if self.name == "vit_l_32":
-            model = models.vit_l_32(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            model = models.vit_l_32(pretrained=True)
+            num_ftrs = model.heads[-1].in_features
 
         if self.name == "vit_h_14":
-            model = models.vit_h_14(pretrained=args.pretrained)
-            num_ftrs = model.classifier[1].in_features
+            model = models.vit_h_14(pretrained=True)
+            num_ftrs = model.heads[-1].in_features
         
         if self.name == "mobilenet_v2":
             model = models.mobilenet_v2(pretrained=args.pretrained)
