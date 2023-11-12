@@ -157,7 +157,7 @@ if __name__ == '__main__':
     model, criterion, optimizer, scheduler = init_model(args)
 
 
-    cifar10_path = '../data/'
+    cifar10_path = '/storage/users/makhavan/CSI/exp05/data/'
     svhn_path = '../data/'
     np_train_img_path = '/storage/users/makhavan/CSI/exp04/data_aug/CorCIFAR10_train/gaussian_noise.npy'
     np_train_target_path = '/storage/users/makhavan/CSI/exp04/data_aug/CorCIFAR10_train/labels.npy'
@@ -186,8 +186,8 @@ if __name__ == '__main__':
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
 
 
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    train_dataset = datasets.CIFAR10(root=cifar10_path, train=True, download=True, transform=transform)
+    test_dataset = datasets.CIFAR10(root=cifar10_path, train=False, download=True, transform=transform)
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
