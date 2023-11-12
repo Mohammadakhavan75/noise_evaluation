@@ -48,6 +48,8 @@ def parsing():
     parser.add_argument('--model_name', default='resnet18', type=str, help='give model name like resnet18|resnet34|vit')
     parser.add_argument('--layers', default=[10], type=list, help='give model last layers as list like [512, 128, 10]')
     parser.add_argument('--pretrained', default=False, type=bool, help='Use imagenet pretrained model')
+
+    parser.add_argument('--device', default='cuda', type=str, help='Use cpu or cuda')
     args = parser.parse_args()
 
     return args
@@ -106,16 +108,16 @@ def test(val_loader, net, global_eval_iter, criterion, device):
             preds = net(inputs)
 
             loss = criterion(preds, targets)
-            auc = roc_auc_score(tensor_to_np(targets), tensor_to_np(preds))
+            # auc = roc_auc_score(tensor_to_np(targets), tensor_to_np(preds))
             acc = accuracy_score(tensor_to_np(torch.argmax(preds, axis=1)), tensor_to_np(targets))
             
             eval_loss.append(loss.item())
             eval_acc.append(acc)
-            eval_auc.append(auc)
+            # eval_auc.append(auc)
 
             writer.add_scalar("Evaluation/loss", loss.item(), global_eval_iter)
             writer.add_scalar("Evaluation/acc", acc, global_eval_iter)
-            writer.add_scalar("Evaluation/auc", auc, global_eval_iter)
+            # writer.add_scalar("Evaluation/auc", auc, global_eval_iter)
 
             global_eval_iter += 1
 
@@ -200,8 +202,8 @@ if __name__ == '__main__':
         save_path = args.save_path
         model_save_path = save_path + 'models/'
     else:
-        addr = datetime.today().strftime('%Y-%m-%d-%H-%M-%S-%f')
-        save_path = './run/exp-' + addr + f"_({args.run_index})_" + f'_lr_{args.learning_rate}' + f'_lrur_{args.lr_update_rate}' + f'_lrg_{args.lr_gamma}' + f'_{args.optimizer}' + '/'
+        addr = datetime.today().strftime('%Y_%m_%d_%H_%M_%S_%f')
+        save_path = './run/exp_' + addr + f"__{args.run_index})__" + f'_lr_{args.learning_rate}' + f'_lrur_{args.lr_update_rate}' + f'_lrg_{args.lr_gamma}' + f'_{args.optimizer}' + '/'
         model_save_path = save_path + 'models/'
         if not os.path.exists(model_save_path):
             os.makedirs(model_save_path, exist_ok=True)
