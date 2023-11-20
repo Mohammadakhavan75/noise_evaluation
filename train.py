@@ -11,6 +11,7 @@ import numpy as np
 from get_models import get_models
 from datetime import datetime
 import os
+from models.wrn_ssnd import *
 
 def parsing():
     parser = argparse.ArgumentParser(description='Tunes a CIFAR Classifier with OE',
@@ -46,8 +47,15 @@ def parsing():
     parser.add_argument('--run_index', default=0, type=int, help='run index')
     # model config
     parser.add_argument('--model_name', default='resnet18', type=str, help='give model name like resnet18|resnet34|vit')
-    parser.add_argument('--layers', default=[10], type=list, help='give model last layers as list like [512, 128, 10]')
+    # parser.add_argument('--layers', default=[10], type=list, help='give model last layers as list like [512, 128, 10]')
     parser.add_argument('--pretrained', default=False, type=bool, help='Use imagenet pretrained model')
+
+    parser.add_argument('--layers', default=40, type=int,
+                        help='total number of layers')
+    parser.add_argument('--widen-factor', default=2, type=int, help='widen factor')
+    parser.add_argument('--droprate', default=0.3, type=float,
+                        help='dropout probability')
+    
 
     parser.add_argument('--device', default='cuda', type=str, help='Use cpu or cuda')
     args = parser.parse_args()
@@ -126,8 +134,10 @@ def test(val_loader, net, global_eval_iter, criterion, device):
 
 def init_model(args):
     
-    get_model = get_models(args.model_name, args.layers)
-    model = get_model.get_model(args)
+    # get_model = get_models(args.model_name, args.layers)
+    # model = get_model.get_model(args)
+    model = WideResNet(args.layers, 10, args.widen_factor, dropRate=args.droprate)
+
 
     if args.model_path is not None:
         print("Loading from pretrain")
