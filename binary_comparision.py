@@ -70,7 +70,7 @@ def parsing():
                          help='Use cpu or cuda')
     parser.add_argument('--T', default=1., type=float,
                          help='Tempreture of energy score')
-    parser.add_argument('--shift', default='gaussian_noise', type=str,
+    parser.add_argument('--shift', default=None, type=str,
                          help='Use cpu or cuda')
     args = parser.parse_args()
 
@@ -167,6 +167,7 @@ if __name__ == '__main__':
     np_test_img_path = f'/storage/users/makhavan/CSI/exp04/data_aug/CorCIFAR10_test/{args.shift}.npy'
     np_test_target_path = '/storage/users/makhavan/CSI/exp04/data_aug/CorCIFAR10_test/labels.npy'
     svhn_path = '/storage/users/makhavan/CSI/exp05/data/'
+    cifar10_path = '/storage/users/makhavan/CSI/exp05/data/'
 
 
     # mean = [x / 255 for x in [125.3, 123.0, 113.9]]
@@ -174,8 +175,13 @@ if __name__ == '__main__':
 
     # transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
     transform = transforms.ToTensor()
-    
-    in_test = dataset_loader.load_np_dataset(np_test_img_path, np_test_target_path, transform=transform)
+
+    if args.shift is None:
+        in_train, in_test = dataset_loader.load_cifar10(cifar10_path, transform=transform)
+    else:
+        print(f'Loading CIFAR10 with {args.shift} shift...')
+        in_test = dataset_loader.load_np_dataset(np_test_img_path, np_test_target_path, transform=transform)
+        
     out_train, out_test = dataset_loader.load_svhn(svhn_path, transform=transform)
 
     in_loader = DataLoader(in_test, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
