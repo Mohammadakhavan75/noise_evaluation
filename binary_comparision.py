@@ -104,39 +104,44 @@ def init_model(args):
     return model, criterion
 
 
-def test(val_loader, net, criterion, device):
+def test(in_loader, out_loader, net, criterion, args):
 
     print('validation...')
     eval_loss = []
     eval_acc = []
     eval_auc = []
-    net = net.to(device)
+    net = net.to(args.device)
     net.eval()
+    loader = zip(in_loader, out_loader)
     with torch.no_grad():
-        for data_in in tqdm(val_loader):
+        for data_in, data_out in tqdm(loader):
 
-            inputs, targets = data_in
-            inputs , targets = inputs.to(device) , targets.to(device)
+            inputs_in, targets_in = data_in
+            inputs_out, targets_out = data_out
+            targets_in_b = np.asarray([0 for _ in range(len(inputs_in))])
+            targets_out_b = np.asarray([1 for _ in range(len(inputs_out))])
+
+            np_inputs = np.concatenate((inputs_in, inputs_out), axis=0)
+            np_targets = np.concatenate((targets_in_b, targets_out_b), axis=0)
+
+            inputs, targets = torch.tensor(np_inputs), torch.tensor(np.asarray(np_targets))
+            inputs , targets = inputs.to(args.device) , targets.to(args.device)
 
             preds = net(inputs)
-
-            loss = criterion(preds, targets)
-            pred_, targets_ = tensor_to_np(preds).copy(), tensor_to_np(targets).copy()
             
-            if args.mode == 'classification':
-                targets_ = label_binarize(targets_, classes=range(10))
-                pred_ = torch.nn.functional.softmax(pred_, dim=1)
-                auc = roc_auc_score(targets_, pred_, multi_class='ovr')#, average='weighted')
-                acc = accuracy_score(tensor_to_np(torch.argmax(preds, axis=1)), tensor_to_np(targets))
-            if args.mode == 'binary':
-                pred_ = torch.nn.functional.sigmoid(pred_)
-                auc = roc_auc_score(targets_, pred_)
-                acc = accuracy_score(tensor_to_np(preds), tensor_to_np(targets))
+            # if args.mode == 'binary'
+            # loss = criterion(preds, targets)
 
+            targets = targets.unsqueeze(1).to(float)
+            score_in = tensor_to_np(-(args.T * torch.logsumexp(preds[:len(inputs_in)] / args.T, dim=1)))
+            score_out = tensor_to_np(-(args.T * torch.logsumexp(preds[len(inputs_in):] / args.T, dim=1)))
+            auroc = compute_auroc(np.array(score_out), np.array(score_in))
             
-            eval_loss.append(loss.item())
-            eval_acc.append(acc)
-            eval_auc.append(auc)
+            # acc = accuracy_score(tensor_to_np(torch.argmax(preds[:len(inputs_in)], axis=1)), tensor_to_np(targets_in))
+            
+            # eval_loss.append(loss.item())
+            # eval_acc.append(acc)
+            eval_auc.append(auroc)
 
 
     return eval_loss, eval_acc, eval_auc
@@ -150,46 +155,6 @@ def compute_auroc(out_scores, in_scores):
     auroc = roc_auc_score(y_true=y_true, y_score=y_score)
 
     return auroc
-
-
-
-def test_binary(in_loader, out_loader, net, criterion, device):
-
-    print('testing binary...')
-    eval_loss = []
-    eval_acc = []
-    eval_auc = []
-    score_in = []
-    score_out = []
-    net = net.to(device)
-    net.eval()
-    loader = zip(in_loader, out_loader)
-    with torch.no_grad():
-        for data_in, data_out in tqdm(loader):
-
-            inputs_in, targets_in = data_in
-            inputs_out, targets_out = data_out
-            targets_in = np.asarray([0 for _ in range(len(inputs_in))])
-            targets_out = np.asarray([1 for _ in range(len(inputs_out))])
-
-            np_inputs = np.concatenate((inputs_in, inputs_out), axis=0)
-            np_targets = np.concatenate((targets_in, targets_out), axis=0)
-
-            inputs, targets = torch.tensor(np_inputs), torch.tensor(np.asarray(np_targets))
-            inputs , targets = inputs.to(args.device) , targets.to(args.device)
-
-            preds = net(inputs)
-            targets = targets.unsqueeze(1).to(float)
-            preds_in, preds_out = preds[:len(inputs_in)].data.max(1)[1], preds[:len(inputs_out)].data.max(1)[1]
-            score_in.extend(list(-tensor_to_np((args.T * torch.logsumexp(preds_in / args.T, dim=1)))))
-            score_out.extend(list(-tensor_to_np((args.T * torch.logsumexp(preds_out / args.T, dim=1)))))
-            auroc = compute_auroc(np.array(score_out), np.array(score_in))
-            
-            # eval_acc.append(acc)
-            eval_auc.append(auroc)
-
-    return eval_loss, eval_acc, eval_auc
-
 
 
 
@@ -221,9 +186,11 @@ if __name__ == '__main__':
     global_eval_iter = 0
     best_acc = 0.0
 
-    eval_loss, eval_acc, eval_auc = test_binary(in_loader, out_loader, model, criterion, args.device)
+    eval_loss, eval_acc, eval_auc = test(in_loader, out_loader, model, criterion, args)
 
-    print(f"\nEvaluation/avg_loss: {np.mean(eval_loss)}",\
-        f"Evaluation/avg_acc: {np.mean(eval_acc)}\n",\
-        f"Evaluation/avg_auc: {np.mean(eval_auc)}")
+    print(f"Evaluation/avg_auc: {np.mean(eval_auc)}")
+
+    # print(f"\nEvaluation/avg_loss: {np.mean(eval_loss)}",\
+    #     f"Evaluation/avg_acc: {np.mean(eval_acc)}\n",\
+    #     f"Evaluation/avg_auc: {np.mean(eval_auc)}")
 
