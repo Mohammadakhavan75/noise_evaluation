@@ -25,24 +25,19 @@ class load_np_dataset(torch.utils.data.Dataset):
         return img, target
 
 
-def load_cifar10(cifar10_path):
+def load_cifar10(cifar10_path, transform=None):
 
-    mean = [x / 255 for x in [125.3, 123.0, 113.9]]
-    std = [x / 255 for x in [63.0, 62.1, 66.7]]
-
-    train_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
-    test_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
-
+    print('Loading CIFAR10...')
     train_data = datasets.CIFAR10(
-        cifar10_path, train=True, transform=train_transform, download=True)
+        cifar10_path, train=True, transform=transform, download=True)
     test_data = datasets.CIFAR10(
-        cifar10_path, train=False, transform=test_transform, download=True)
+        cifar10_path, train=False, transform=transform, download=True)
 
     return train_data, test_data
 
 def load_svhn(svhn_path, transform=None, include_extra=False):
 
-    print('loading SVHN')
+    print('Loading SVHN...')
     if not include_extra:
         train_data = svhn.SVHN(root=svhn_path, split="train",
                                  transform=transform)
