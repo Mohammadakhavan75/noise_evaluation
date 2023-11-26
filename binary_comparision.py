@@ -70,8 +70,13 @@ def parsing():
                          help='Use cpu or cuda')
     parser.add_argument('--T', default=1., type=float,
                          help='Tempreture of energy score')
+    
+    parser.add_argument('--in_dataset', default='cifar10', type=str,
+                         help='In dataset')
+    parser.add_argument('--ood_dataset', default='svhn', type=str,
+                         help='out of distribution dataset')
     parser.add_argument('--shift', default=None, type=str,
-                         help='Use cpu or cuda')
+                         help='shift type')
     args = parser.parse_args()
 
     return args
@@ -176,13 +181,20 @@ if __name__ == '__main__':
     # transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
     transform = transforms.ToTensor()
 
-    if args.shift is None:
+    # Loading IN
+    if args.in_dataset == 'cifar10':
         in_train, in_test = dataset_loader.load_cifar10(cifar10_path, transform=transform)
-    else:
+    elif args.ood_dataset != args.shift:
         print(f'Loading CIFAR10 with {args.shift} shift...')
         in_test = dataset_loader.load_np_dataset(np_test_img_path, np_test_target_path, transform=transform)
-        
-    out_train, out_test = dataset_loader.load_svhn(svhn_path, transform=transform)
+    
+    # Loading OOD
+    if args.ood_dataset == 'svhn':
+        out_train, out_test = dataset_loader.load_svhn(svhn_path, transform=transform)
+    else:
+        print(f'Loading CIFAR10 with {args.shift} shift...')
+        out_test = dataset_loader.load_np_dataset(np_test_img_path, np_test_target_path, transform=transform)
+
 
     in_loader = DataLoader(in_test, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False)
     out_loader = DataLoader(out_test, batch_size=args.batch_size, num_workers=args.num_workers,  shuffle=False)
