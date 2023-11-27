@@ -1,0 +1,8 @@
+*.log
+*.jpg
+data
+temp.ipynb
+available_noises.txt
+run
+run.sh
+__pycache__
